@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { OutboxFlusher } from "@/components/OutboxFlusher";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col">{children}</main>
         <ServiceWorkerRegistrar />
+        <OutboxFlusher />
       </body>
     </html>
   );

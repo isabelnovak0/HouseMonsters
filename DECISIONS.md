@@ -48,7 +48,8 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 ### D-010 · Points & duplicates are pure functions
 - **Chosen:** `src/lib/points.ts` — +100 for a new catch, +50 once when resolved, and a 30 m haversine radius for "same house". Points are stored per monster and summed for the total.
 - **Alternatives:** A running total in settings; server-side scoring.
-- **Why:** Deriving the total from the collection can't get out of sync, and pure functions are unit-tested (`tests/points.test.ts`). The +100 is awarded at catch time (so the reveal can show "+100"); a duplicate catch earns 0 and the user is warned.
+- **Why:** Deriving the total from the collection can't get out of sync, and pure functions are unit-tested (`tests/points.test.ts`).
+- **When points land:** the reveal previews "+100", but the points are stored only when the user confirms the report (sent, or queued offline). Tapping "Cancel, don't send" keeps the monster as an unreported draft worth 0 until it's reported from the collection. A duplicate catch (within 30 m of one you already have) is worth 0 and the reveal says so.
 
 ### D-011 · Photo analysis: one Claude call with structured output, server-side
 - **Chosen:** `POST /api/analyze` → `src/lib/server/analyze-house.ts` makes a single `client.beta.messages.parse` call to `claude-opus-5-5` with the photo as a base64 image block and `HouseAnalysisSchema` as the structured-output format. `effort: "low"` because the user is standing in front of the house waiting; server-side `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`) so a safety-classifier decline is retried on another model instead of failing. Refusals, auth, rate-limit and bad-image errors each map to a friendly message; the client then lets the user type the description themselves.
@@ -85,3 +86,18 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** `/api/geocode` proxies Nominatim for reverse (GPS → address) and forward (typed address → point, biased to the Birmingham area) lookups. The review screen's small map is OSM raster tiles with a pin, with attribution.
 - **Alternatives:** Google Maps / Mapbox (API keys and billing); Leaflet/MapLibre (heavier than a single static map needs).
 - **Why:** No key needed to start. Proxying lets us send the identifying User-Agent Nominatim's usage policy asks for, without sending anything about the user. For real traffic, switch to a paid geocoder or self-hosted Nominatim — Nominatim's public server allows ~1 request/second.
+
+### D-016 · Snap flow is one page with a reducer-driven step machine
+- **Chosen:** `/snap` renders `camera → analyzing → (notHouse) → reveal → review → done` from one `useReducer` in `src/app/snap/page.tsx`; each step is a component in `src/components/snap/`.
+- **Alternatives:** One route per step (`/snap/review`, …) with state in the URL or a store; a state-machine library (XState).
+- **Why:** The photo is a large data URL that shouldn't travel through URLs or be re-read between routes, and the steps are strictly linear. A typed reducer gives explicit transitions without a dependency.
+
+### D-017 · Offline: reports are saved before sending and retried automatically
+- **Chosen:** On "Send" the monster is written to IndexedDB with `pendingReport: true` first. Success → `reported`. Network/5xx/429 → stays queued and the user sees "will send when you're back online"; `flushOutbox()` retries on app start and on the browser `online` event. A permanent rejection (4xx) clears the flag and shows the error.
+- **Alternatives:** Background Sync API (not supported in iOS Safari); dropping the report with an error.
+- **Why:** Abandoned houses are often in spots with weak signal. Saving first means closing the tab mid-send never loses a report.
+
+### D-018 · If Claude is unavailable the user can still catch and report
+- **Chosen:** When `/api/analyze` fails, the client samples five colors from bands of the photo (`samplePalette`) and hatches a plain one-story house monster named "Mystery House"; the review screen asks the user to write the description.
+- **Alternatives:** Block the flow until analysis works.
+- **Why:** The civic report matters more than the monster; an API outage shouldn't stop it.
