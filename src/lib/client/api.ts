@@ -55,5 +55,6 @@ export async function sendReport(payload: ReportPayload): Promise<ReportResult> 
 
 /** A failure worth retrying later rather than showing as final. */
 export function isRetryable(e: unknown): boolean {
-  return e instanceof ApiError && (e.status === 0 || e.status === 429 || e.status >= 500);
+  // 501 = the server has no report sender configured; retrying can't succeed
+  return e instanceof ApiError && (e.status === 0 || e.status === 429 || (e.status >= 500 && e.status !== 501));
 }

@@ -43,7 +43,8 @@ export async function POST(req: Request) {
     console.error("[report] sender not configured, missing:", sender.missing.join(", "));
     return NextResponse.json<ReportResult>(
       { ok: false, channel: "none", error: "Reporting isn't set up on this server yet." },
-      { status: 503 },
+      // 501, not 503: retrying won't help until an admin configures a sender (see isRetryable)
+      { status: 501 },
     );
   }
 
