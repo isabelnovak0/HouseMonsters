@@ -49,3 +49,13 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** `src/lib/points.ts` — +100 for a new catch, +50 once when resolved, and a 30 m haversine radius for "same house". Points are stored per monster and summed for the total.
 - **Alternatives:** A running total in settings; server-side scoring.
 - **Why:** Deriving the total from the collection can't get out of sync, and pure functions are unit-tested (`tests/points.test.ts`). The +100 is awarded at catch time (so the reveal can show "+100"); a duplicate catch earns 0 and the user is warned.
+
+### D-011 · Photo analysis: one Claude call with structured output, server-side
+- **Chosen:** `POST /api/analyze` → `src/lib/server/analyze-house.ts` makes a single `client.beta.messages.parse` call to `claude-opus-5-5` with the photo as a base64 image block and `HouseAnalysisSchema` as the structured-output format. `effort: "low"` because the user is standing in front of the house waiting; server-side `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`) so a safety-classifier decline is retried on another model instead of failing. Refusals, auth, rate-limit and bad-image errors each map to a friendly message; the client then lets the user type the description themselves.
+- **Alternatives:** Calling Claude from the browser (would expose the API key); tool-use with a forced tool (forced `tool_choice` isn't supported on this model); a cheaper/faster model (left to the owner — swap `MODEL`); higher effort (slower, little gain for a short extraction).
+- **Why:** Structured output means no brittle JSON parsing, and one round-trip keeps the reveal snappy. The system prompt forbids describing people, faces, plates or guessing at occupants, per the privacy requirement.
+
+### D-012 · Photos are downscaled on the phone before upload
+- **Chosen:** The client draws the capture onto a canvas at ≤1280 px on the long edge and exports JPEG (q≈0.82) as a data URL. That one image is used for analysis, storage and the 311 email.
+- **Alternatives:** Upload the full camera image (often 4–12 MB); server-side resize with `sharp`.
+- **Why:** Smaller uploads on mobile data, fits comfortably in IndexedDB and email attachments, and is plenty for Claude vision. No native dependency on the server.
