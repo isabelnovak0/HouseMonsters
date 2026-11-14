@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Monster } from "@/components/monster/Monster";
+import { ROAM_AREA } from "@/components/ui/MapBackdrop";
 import { DANCE_MOVES, hash, type DanceMove } from "@/lib/monster";
 import type { Monster as MonsterRecord } from "@/lib/types";
 
@@ -13,9 +14,19 @@ const SPEED_PCT_PER_S = 12;
 
 type Pos = { x: number; y: number };
 
-/** Random point inside the roaming area (percent of the map), kept clear of the header and card. */
+/** Monster box as % of a 390×844 screen. */
+const MONSTER_W_PCT = 31;
+/** Where a monster's top-left corner may go: inside the painted island, clear of the border and header. */
+const BOUNDS = {
+  x0: ROAM_AREA.left + 1,
+  x1: ROAM_AREA.right - MONSTER_W_PCT,
+  y0: 11,
+  y1: ROAM_AREA.bottom - 22,
+};
+
+/** Random point inside the roaming area (percent of the map). */
 function randomTarget(rand: () => number): Pos {
-  return { x: 4 + rand() * 62, y: 14 + rand() * 54 };
+  return { x: BOUNDS.x0 + rand() * (BOUNDS.x1 - BOUNDS.x0), y: BOUNDS.y0 + rand() * (BOUNDS.y1 - BOUNDS.y0) };
 }
 
 function seeded(seed: number) {
@@ -53,7 +64,7 @@ export function Wanderer({ monster, selected, onSelect }: { monster: MonsterReco
     const step = (from: Pos) => {
       timer = setTimeout(
         () => {
-          const to = angel ? { x: clamp(from.x + (rand() - 0.5) * 16, 4, 66), y: clamp(from.y + (rand() - 0.5) * 12, 14, 68) } : randomTarget(rand);
+          const to = angel ? { x: clamp(from.x + (rand() - 0.5) * 16, BOUNDS.x0, BOUNDS.x1), y: clamp(from.y + (rand() - 0.5) * 12, BOUNDS.y0, BOUNDS.y1) } : randomTarget(rand);
           const dist = Math.hypot(to.x - from.x, to.y - from.y);
           const duration = Math.max(1, dist / speed);
           setFlip(to.x < from.x);

@@ -4,16 +4,16 @@ import { chooseAnimal, pickDances } from "@/lib/monster";
 const base = { roofShape: "gable", stories: 1, windowCount: 2, doorPosition: "center", porch: false, chimney: false } as const;
 
 describe("chooseAnimal", () => {
-  it("sends spooky or flat-roofed houses to the box cat", () => {
-    expect(chooseAnimal(base, ["fire damage"], "a")).toBe("boxcat");
-    expect(chooseAnimal({ ...base, roofShape: "flat" }, [], "a")).toBe("boxcat");
+  it("hatches only snails and box cats, a mix of both, regardless of the house", () => {
+    const picks = Array.from({ length: 200 }, (_, i) => chooseAnimal({ ...base, stories: 3, porch: true }, ["fire damage"], `id-${i}-${i * 7919}`));
+    const snails = picks.filter((a) => a === "snail").length;
+    const cats = picks.filter((a) => a === "boxcat").length;
+    expect(snails + cats).toBe(200);
+    expect(snails).toBeGreaterThan(60);
+    expect(cats).toBeGreaterThan(60);
   });
-  it("gives big houses and porches to the turtle", () => {
-    expect(chooseAnimal({ ...base, stories: 2 }, [], "a")).toBe("turtle");
-    expect(chooseAnimal({ ...base, porch: true }, [], "a")).toBe("turtle");
-  });
-  it("gives small houses to the snail", () => {
-    expect(chooseAnimal(base, ["overgrowth"], "a")).toBe("snail");
+  it("is stable for a given monster", () => {
+    expect(chooseAnimal(base, [], "abc")).toBe(chooseAnimal(base, ["overgrowth"], "abc"));
   });
 });
 

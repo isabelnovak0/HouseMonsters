@@ -29,3 +29,6 @@ export const StarIcon = ({ className }: P) => (
 export const CheckIcon = ({ className }: P) => (
   <svg aria-hidden="true" viewBox="0 0 24 24" className={className} {...base} strokeWidth={3}><path d="M5 12l5 5 9-10" /></svg>
 );
+export const TrashIcon = ({ className }: P) => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" className={className} {...base}><path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" /></svg>
+);

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Wanderer } from "@/components/collection/Wanderer";
-import { BackIcon, CameraIcon, CheckIcon, CloseIcon } from "@/components/ui/icons";
+import { BackIcon, CameraIcon, CheckIcon, CloseIcon, TrashIcon } from "@/components/ui/icons";
 import { MapBackdrop } from "@/components/ui/MapBackdrop";
 import { isRetryable, sendReport } from "@/lib/client/api";
 import { markReported, toPayload } from "@/lib/client/outbox";
@@ -57,10 +57,26 @@ export default function CollectionPage() {
         </Link>
         <div className="flex h-12 min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border-2 border-ink bg-paper px-3.5">
           <h1 className="whitespace-nowrap font-[family-name:var(--font-display)] text-[17px] font-semibold">My monsters</h1>
-          <span className="whitespace-nowrap text-[13px] font-bold text-ink-soft" aria-label={`${monsters.length} caught, ${angels} fixed, ${totalPoints(monsters)} points`}>
-            {monsters.length} caught · {angels} saved · {totalPoints(monsters)}★
+          <span className="whitespace-nowrap text-[13px] font-bold text-ink-soft" aria-label={`${monsters.length} monsters, ${angels} fixed by the city, ${totalPoints(monsters)} points`}>
+            {monsters.length} · {totalPoints(monsters)}★
           </span>
         </div>
+        {monsters.length > 0 && (
+          <button
+            type="button"
+            aria-label="Delete all monsters"
+            onClick={async () => {
+              if (!window.confirm(`Delete all ${monsters.length} monsters from this phone? Reports already sent to the city are not affected.`)) return;
+              await Promise.all(monsters.map((m) => repo.remove(m.id)));
+              setSelectedId(undefined);
+              await reload();
+              setToast("All monsters deleted.");
+            }}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-ink bg-paper"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
+        )}
       </header>
 
       <AnimatePresence>

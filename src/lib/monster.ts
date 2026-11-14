@@ -1,19 +1,15 @@
 import type { AnimalType, HouseFeatures } from "./types";
 
+/** Animals new catches can hatch as (D-023). The turtle still renders for older monsters. */
+export const HATCHABLE: AnimalType[] = ["snail", "boxcat"];
+
 /**
- * Picks which animal carries the house. Deterministic for a given house so the
- * same photo always hatches the same kind of monster (see DECISIONS.md D-013):
- * - spooky houses (fire damage, open/missing door, collapse) or flat roofs → box cat
- * - big houses (2+ stories) or porches → turtle (sturdy shell)
- * - small, simple houses → snail
- * A seed breaks ties so collections stay varied.
+ * Picks which animal carries the house: a coin flip between snail and box cat,
+ * taken from the monster's random id so it's random per catch but stays the same
+ * for that monster forever (D-023).
  */
-export function chooseAnimal(features: HouseFeatures, conditionTags: string[], seed: string): AnimalType {
-  const spooky = conditionTags.some((t) => ["fire damage", "open or missing door", "structural collapse"].includes(t));
-  if (spooky || features.roofShape === "flat") return "boxcat";
-  if (features.stories >= 2 || features.porch) return "turtle";
-  if (features.windowCount <= 2) return "snail";
-  return hash(seed) % 2 === 0 ? "snail" : "turtle";
+export function chooseAnimal(_features: HouseFeatures, _conditionTags: string[], seed: string): AnimalType {
+  return HATCHABLE[hash(seed) % HATCHABLE.length];
 }
 
 export function hash(s: string): number {

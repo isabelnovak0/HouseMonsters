@@ -122,3 +122,17 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** `NEXT_PUBLIC_SKIP_AI=1` makes the snap flow skip `/api/analyze`: the monster uses on-device photo colors (D-021) and a varied house shape, the description starts with an editable sentence, and no "analysis unavailable" warning is shown. Reports still go through the configured sender.
 - **Alternatives:** Leave the key unset and let every photo hit the error path (shows a warning each time and adds a wasted request).
 - **Why:** For demos without an Anthropic key, the flow should look intentional rather than broken.
+
+### D-023 · New catches are randomly a snail or a box cat
+- **Chosen:** `chooseAnimal()` flips a coin between snail and box cat using a hash of the monster's random id: random per catch, fixed for that monster. The turtle drawing stays so monsters caught earlier still render.
+- **Alternatives:** Picking the animal from house features (D-013, previous behavior); true `Math.random()` (same effect, but not reproducible in tests).
+- **Why:** Requested: with feature-based picking, similar photos kept hatching the same animal.
+
+### D-024 · Storybook map background
+- **Chosen:** `MapBackdrop` is an original flat gouache-style map modeled on a reference image the user supplied: icon-tile border (stars, flowers, fruit, mushrooms, lily pads), cream vine-and-ribbon banners, a green island with a stepped river, meadow clearings, pines, a pond with a dock, a bridge and a treasure chest, plus an SVG grain filter for a painted texture. Monsters roam only inside the island (`ROAM_AREA`).
+- **Alternatives:** A raster image of the reference (not ours to ship, and blurry at phone resolutions); the earlier parchment map.
+- **Why:** Matches the requested look while staying a crisp, tiny SVG.
+
+### D-025 · "Delete all monsters" on the collection
+- **Chosen:** A trash button in the collection header, behind a confirm dialog, removes every monster from this device. Reports already sent are unaffected.
+- **Why:** Requested for resetting demos; collections live only on the device, so there's no server data to clean up.
