@@ -13,14 +13,27 @@ import type { LocationError } from "@/lib/client/location";
 import { markReported, toPayload } from "@/lib/client/outbox";
 import { samplePalette } from "@/lib/client/photo";
 import { formatCoords } from "@/lib/geo";
-import { chooseAnimal, pickDances, type DanceMove } from "@/lib/monster";
+import { chooseAnimal, hash, pickDances, type DanceMove } from "@/lib/monster";
 import { findNearbyDuplicate, NEW_HOUSE_POINTS } from "@/lib/points";
 import { monsters as monsterRepo, settings } from "@/lib/storage";
 import type { HouseFeatures, Monster, ReporterContact } from "@/lib/types";
 import { MAX_NAME_LENGTH } from "@/lib/types";
 
-/** Used when Claude can't analyze the photo: a plain one-story house in the photo's colors. */
-const FALLBACK_FEATURES: HouseFeatures = { roofShape: "gable", stories: 1, windowCount: 2, doorPosition: "center", porch: false, chimney: false };
+/** Used when Claude can't analyze the photo: a house shape picked from the id, painted in the photo's colors. */
+function fallbackFeatures(id: string): HouseFeatures {
+  const h = hash(id);
+  return {
+    roofShape: (["gable", "hip", "flat"] as const)[h % 3],
+    stories: 1 + ((h >> 3) % 2),
+    windowCount: 2 + ((h >> 5) % 3),
+    doorPosition: (["center", "left", "right"] as const)[(h >> 7) % 3],
+    porch: ((h >> 9) & 1) === 1,
+    chimney: ((h >> 10) & 1) === 1,
+  };
+}
+
+/** Starter text when the AI description isn't available; the user is asked to add what they see. */
+const FALLBACK_DESCRIPTION = "House that appears to be vacant or abandoned, reported by a resident. Photo attached. ";
 
 type Step = "camera" | "analyzing" | "notHouse" | "reveal" | "review" | "done";
 
@@ -153,11 +166,12 @@ export default function SnapPage() {
     if (analysis instanceof Error) {
       // Claude unavailable: still hatch a monster from the photo's own colors; user writes the description.
       const palette = await samplePalette(capture.photo);
+      const features = fallbackFeatures(id);
       dispatch({
         type: "analyzed",
-        look: { animal: chooseAnimal(FALLBACK_FEATURES, [], id), palette, houseFeatures: FALLBACK_FEATURES, conditionTags: [] },
+        look: { animal: chooseAnimal(features, [], id), palette, houseFeatures: features, conditionTags: [] },
         name: "Mystery House",
-        description: "",
+        description: FALLBACK_DESCRIPTION,
         tags: [],
         note: analysis instanceof ApiError ? analysis.message : "We couldn't read the photo, so you'll describe the house yourself.",
         catchPoints,
@@ -270,7 +284,7 @@ export default function SnapPage() {
           onChange={(patch) => dispatch({ type: "review", patch })}
           locationError={s.locationError}
           addressLoading={s.addressLoading}
-          descriptionNote={s.analysisNote ? "Photo analysis wasn't available, so please describe what you see." : undefined}
+          descriptionNote={s.analysisNote ? "AI photo analysis wasn't available. Add what you see (boarded windows, broken glass, overgrown yard…)." : undefined}
           sending={s.sending}
           error={s.sendError}
           onBack={() => dispatch({ type: "goto", step: "reveal" })}

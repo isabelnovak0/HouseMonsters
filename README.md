@@ -56,6 +56,23 @@ npm run dev
 
 Open http://localhost:3000. Camera and GPS work on `localhost` in a desktop browser.
 
+### Demo setup: reports to your own inbox
+
+1. Sign up at [resend.com](https://resend.com) **with the email address you want the reports sent to** and create an API key.
+2. Put this in `.env.local` (Resend's shared `onboarding@resend.dev` sender can only deliver to the address your Resend account uses):
+
+   ```
+   ANTHROPIC_API_KEY=sk-ant-...
+   REPORT_SENDER=email
+   RESEND_API_KEY=re_...
+   REPORT_FROM_EMAIL=House Monsters <onboarding@resend.dev>
+   CITY_311_EMAIL=<the same address you signed up to Resend with>
+   NEXT_PUBLIC_DEMO=1
+   ```
+3. Restart the app (`npm run build` then `npm start`, or `npm run dev`).
+
+Without `ANTHROPIC_API_KEY`, the AI description, damage tags and house shape are skipped: the monster still uses colors picked from the photo on the phone, and the user writes the description.
+
 ## Running it on your phone (HTTPS is required)
 
 Phones only allow the camera and location on **HTTPS** pages. Pick one:

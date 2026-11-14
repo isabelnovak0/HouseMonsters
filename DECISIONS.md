@@ -107,3 +107,13 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Status hook:** `GET /api/report/status?ref=…` asks the configured sender whether the city closed the request; `refreshStatuses()` runs when the collection opens and turns closed reports into angels (+50). Only Open311 can answer (GeoReport v2 `GET /requests/{id}.json`); with email it returns `unknown`, so v1 relies on "Mark as resolved".
 - **Alternatives:** A real map library with geographic positions (monsters would pile up on one neighborhood and need clustering); a grid/list view.
 - **Why:** The brief asks for monsters roaming a playful map, not a geographic one; the real address is in the card. Positions are cosmetic, so no map tiles or location math are needed.
+
+### D-020 · Collection monsters always roam, even with "reduce motion" on
+- **Chosen:** `Wanderer` walks every monster at 12% of the map per second with 0.6–2.2 s pauses, starting within a second of opening the screen. If the device asks for reduced motion, monsters glide at half speed and skip the dances instead of freezing.
+- **Alternatives:** Stop all movement under `prefers-reduced-motion` (the previous behavior).
+- **Why:** On devices with reduced motion turned on (an accessibility setting, also tied to battery-saver modes on some devices) the collection looked broken: nothing moved. Slow, steady gliding keeps the screen alive while avoiding bouncy or spinning motion.
+
+### D-021 · On-device colors when Claude isn't available
+- **Chosen:** `paletteFromPixels` (`src/lib/palette.ts`) shrinks the photo to 48×48 and picks the most common color bucket per region: roof (upper middle; falls back to the darkest color if that region is sky), walls (centre), door (darkest color low in the centre), trim (lightest color in the house area), yard (bottom strip). The fallback house shape varies per catch, and the description is pre-filled with a neutral starter sentence for the user to complete.
+- **Alternatives:** Averaging horizontal bands (previous behavior: muddy greys); k-means clustering (more code, similar result at this size).
+- **Why:** The monster must look like the user's house even without an API key. Claude's palette is still used whenever analysis works.

@@ -8,7 +8,8 @@ import type { Monster as MonsterRecord } from "@/lib/types";
 
 /** Monster width on the map in px. */
 export const WANDERER_SIZE = 116;
-const SPEED_PCT_PER_S = 7;
+/** Walking speed in % of the map per second (halved for angels and reduced-motion users). */
+const SPEED_PCT_PER_S = 12;
 
 type Pos = { x: number; y: number };
 
@@ -41,27 +42,32 @@ export function Wanderer({ monster, selected, onSelect }: { monster: MonsterReco
   const [dance, setDance] = useState<{ move: DanceMove; key: number } | null>(null);
 
   useEffect(() => {
-    if (reduceMotion || selected) return;
+    // Roaming is the point of this screen, so it always runs (D-020). With
+    // "reduce motion" on, monsters glide slower and skip the dances.
+    if (selected) return;
+    const speed = SPEED_PCT_PER_S / (angel || reduceMotion ? 2 : 1);
     let timer: ReturnType<typeof setTimeout>;
     const rand = randRef.current;
 
+    let first = true; // the first walk starts almost immediately
     const step = (from: Pos) => {
       timer = setTimeout(
         () => {
           const to = angel ? { x: clamp(from.x + (rand() - 0.5) * 16, 4, 66), y: clamp(from.y + (rand() - 0.5) * 12, 14, 68) } : randomTarget(rand);
           const dist = Math.hypot(to.x - from.x, to.y - from.y);
-          const duration = Math.max(1.2, dist / (angel ? SPEED_PCT_PER_S / 2 : SPEED_PCT_PER_S));
+          const duration = Math.max(1, dist / speed);
           setFlip(to.x < from.x);
           setMoving({ duration });
           setPos(to);
           timer = setTimeout(() => {
             setMoving(null);
-            if (!angel && rand() < 0.3) setDance({ move: DANCE_MOVES[Math.floor(rand() * DANCE_MOVES.length)], key: Date.now() });
+            if (!angel && !reduceMotion && rand() < 0.3) setDance({ move: DANCE_MOVES[Math.floor(rand() * DANCE_MOVES.length)], key: Date.now() });
             step(to);
           }, duration * 1000);
         },
-        1500 + rand() * 3500,
+        first ? 150 + rand() * 600 : 600 + rand() * 1600,
       );
+      first = false;
     };
     step(pos);
     return () => clearTimeout(timer);

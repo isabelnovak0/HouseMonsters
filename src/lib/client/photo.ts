@@ -1,5 +1,7 @@
 "use client";
 
+import { paletteFromPixels } from "../palette";
+
 const MAX_EDGE = 1280;
 const QUALITY = 0.82;
 
@@ -46,31 +48,21 @@ export async function fileToDataUrl(file: File): Promise<string> {
 }
 
 /**
- * Fallback palette when Claude is unavailable: average colors of horizontal
- * bands of the photo (top ≈ roof/sky, middle ≈ walls, bottom ≈ yard).
+ * On-device palette when Claude is unavailable (D-021). Shrinks the photo to
+ * 48×48 and assigns colors by where they sit: roof = upper middle, walls =
+ * centre, door = darkest color low in the centre, trim = lightest color in the
+ * house area, surroundings = bottom strip. Each region uses its most common
+ * color bucket rather than an average, so colors stay vivid instead of muddy.
  */
 export async function samplePalette(dataUrl: string) {
   const img = new Image();
   img.src = dataUrl;
   await img.decode();
+  const N = 48;
   const canvas = document.createElement("canvas");
-  canvas.width = 24;
-  canvas.height = 24;
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, 0, 0, 24, 24);
-  const band = (y0: number, y1: number, x0 = 4, x1 = 20) => {
-    const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
-    let r = 0, g = 0, b = 0;
-    const n = d.length / 4;
-    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
-    const hex = (v: number) => Math.round(v / n).toString(16).padStart(2, "0");
-    return `#${hex(r)}${hex(g)}${hex(b)}`;
-  };
-  return {
-    roof: band(4, 9),
-    walls: band(10, 16),
-    door: band(14, 19, 10, 14),
-    trim: band(9, 11),
-    surroundings: band(19, 24, 0, 24),
-  };
+  canvas.width = N;
+  canvas.height = N;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(img, 0, 0, N, N);
+  return paletteFromPixels(ctx.getImageData(0, 0, N, N).data, N, N);
 }

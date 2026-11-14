@@ -35,6 +35,7 @@ export class AnalysisError extends Error {
 let client: Anthropic | undefined;
 function getClient(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
+    console.warn("[analyze] ANTHROPIC_API_KEY is not set: add it to .env.local and restart to get AI descriptions and colors.");
     throw new AnalysisError(
       "ANTHROPIC_API_KEY is not set",
       "Photo analysis isn't set up on this server, so you'll need to describe the house yourself.",
@@ -70,6 +71,7 @@ export async function analyzeHousePhoto(
       ],
     });
   } catch (error) {
+    if (error instanceof AnalysisError) throw error;
     if (error instanceof Anthropic.RateLimitError) {
       throw new AnalysisError("rate limited", "Too many monsters at once! Try again in a minute.", 429);
     }
@@ -82,7 +84,8 @@ export async function analyzeHousePhoto(
     if (error instanceof Anthropic.APIError) {
       throw new AnalysisError(`api ${error.status}: ${error.message}`, "Photo analysis is having trouble right now.", 502);
     }
-    throw error;
+    // e.g. the reply didn't validate against HouseAnalysisSchema
+    throw new AnalysisError(`unexpected: ${(error as Error)?.message}`, "Photo analysis got confused. Try again.", 502);
   }
 
   if (response.stop_reason === "refusal") {
