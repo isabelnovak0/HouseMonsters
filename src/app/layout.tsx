@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "House Monsters",
   description: "Snap an abandoned house, catch its monster, and report it to Birmingham 311.",
   appleWebApp: { capable: true, title: "House Monsters", statusBarStyle: "default" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
