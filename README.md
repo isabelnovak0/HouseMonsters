@@ -75,6 +75,11 @@ To run without Claude, replace the `ANTHROPIC_API_KEY` line with `NEXT_PUBLIC_SK
 
 Without `ANTHROPIC_API_KEY`, the AI description, damage tags and house shape are skipped: the monster still uses colors picked from the photo on the phone, and the user writes the description.
 
+**If reports are "rejected":** with `NEXT_PUBLIC_DEMO=1` the phone shows Resend's reason (it's also in the server terminal). The usual ones:
+- *"You can only send testing emails to your own email address"*: `CITY_311_EMAIL` must be the exact address you signed up to Resend with (or verify your own domain in Resend and send from it).
+- *"API key is invalid"*: re-copy `RESEND_API_KEY` with no spaces or quotes, then rebuild.
+- After editing `.env.local`, always run `npm run build` again before `npm start`.
+
 ## Running it on your phone (HTTPS is required)
 
 Phones only allow the camera and location on **HTTPS** pages. Pick one:

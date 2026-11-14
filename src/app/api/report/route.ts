@@ -53,9 +53,13 @@ export async function POST(req: Request) {
     return NextResponse.json<ReportResult>({ ok: true, channel: sender.channel, reference });
   } catch (error) {
     const retryable = error instanceof ReportSendError ? error.retryable : true;
-    console.error("[report] send failed:", (error as Error).message);
+    const detail = (error as Error).message;
+    console.error("[report] send failed:", detail);
+    // In demo mode, show the provider's reason on screen so setup problems are easy to fix.
+    const showDetail = process.env.NEXT_PUBLIC_DEMO === "1";
+    const base = retryable ? "Couldn't reach the city right now." : "The report was rejected.";
     return NextResponse.json<ReportResult>(
-      { ok: false, channel: sender.channel, error: retryable ? "Couldn't reach the city right now." : "The report was rejected." },
+      { ok: false, channel: sender.channel, error: showDetail ? `${base} (${detail})` : base },
       { status: retryable ? 502 : 422 },
     );
   }
