@@ -35,6 +35,20 @@ One record per collected house, stored in IndexedDB store `monsters` (key `id`, 
 
 Store `settings` holds the remembered reporter contact (key `reporter`).
 
+## Monster rendering
+```
+<Monster monster={{animal, palette, houseFeatures, conditionTags}} walking dance angel flip />
+  └─ motion.svg (viewBox 0 -70 260 290)  ← angel: 50% opacity + float
+       ├─ wings + glow (angel only)
+       ├─ motion.g  ← body dances: bounce / spin
+       │    └─ <Turtle | Snail | BoxCat>  ← legs swing while walking
+       │         └─ <House>  ← drawn from features + palette + damage tags
+       │              ├─ chimney smoke (motion: chimneyPuff)
+       │              └─ roof group   (motion: lidHop)
+       └─ halo (angel only, placed above the roof)
+```
+`/gallery` (dev only) shows every animal × sample houses with buttons for each move.
+
 ## Layout (work in progress)
 ```
 src/

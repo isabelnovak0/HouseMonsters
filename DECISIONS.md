@@ -59,3 +59,14 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** The client draws the capture onto a canvas at ≤1280 px on the long edge and exports JPEG (q≈0.82) as a data URL. That one image is used for analysis, storage and the 311 email.
 - **Alternatives:** Upload the full camera image (often 4–12 MB); server-side resize with `sharp`.
 - **Why:** Smaller uploads on mobile data, fits comfortably in IndexedDB and email attachments, and is plenty for Claude vision. No native dependency on the server.
+
+### D-013 · Monsters are composed SVG, not generated images
+- **Chosen:** Hand-built SVG parts (`src/components/monster/`): a `House` drawn from `houseFeatures` (stories, roof shape, windows, door side, porch, chimney) and painted from the photo `palette`, with visible damage from `conditionTags` (boarded/broken windows, overgrowth, trash, graffiti, peeling paint, fire damage). It rides on one of three animals modelled on the reference art. A light `feTurbulence` displacement filter gives the hand-drawn wobble.
+- **Alternatives:** An image-generation API (one static picture per catch); Lottie/Rive animations; a sprite sheet.
+- **Why:** Each part is a separate SVG group, so Framer Motion can swing legs, hop the roof like a lid, puff the chimney and spin/bounce the body — a generated bitmap can't be animated that way. It costs nothing per catch, works offline, and every monster stays in one consistent cartoon style.
+- **Animal choice** (`src/lib/monster.ts`): spooky houses (fire damage, open door, collapse) or flat roofs → box cat; 2+ stories or a porch → turtle; small houses → snail; ties broken by a hash of the id. Deterministic so a house always hatches the same species.
+
+### D-014 · Animation: Framer Motion
+- **Chosen:** `framer-motion` for keyframed SVG transforms (walk cycle, dances, angel float), CSS `prefers-reduced-motion` respected globally.
+- **Alternatives:** Hand-written CSS keyframes; GSAP; Web Animations API directly.
+- **Why:** Declarative keyframes per SVG group, easy replay via React keys, and sequencing from React state. GSAP's licence and imperative style add little here.
