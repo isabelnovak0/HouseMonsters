@@ -38,6 +38,10 @@ const ANIMALS: Record<AnimalType, (p: AnimalProps) => React.ReactElement> = {
   boxcat: BoxCat,
 };
 
+/** Left wing, attached at (0,0) and spreading out to negative x; mirrored for the right wing. */
+const WING =
+  "M0 0 C -18 -30 -58 -48 -88 -42 C -82 -32 -86 -24 -76 -18 C -82 -10 -78 -2 -66 0 C -68 8 -58 14 -48 10 C -42 18 -26 18 -18 12 Z";
+
 const BODY_DANCES: Partial<Record<DanceMove, { animate: TargetAndTransition; transition: Transition }>> = {
   bounce: { animate: { y: [0, -34, 0, -18, 0], scaleY: [1, 0.9, 1.06, 0.95, 1] }, transition: { duration: 0.9, ease: "easeOut" } },
   spin: { animate: { rotate: [0, 360] }, transition: { duration: 0.9, ease: "easeInOut" } },
@@ -70,9 +74,10 @@ export function Monster({
 
   const body = dance ? BODY_DANCES[dance] : undefined;
   const anchor = HOUSE_ANCHORS[monster.animal] ?? HOUSE_ANCHORS.turtle;
-  const roofTop = houseGeometry(monster.houseFeatures, anchor.cx, anchor.baseY, anchor.width).roofTop;
-  const haloY = roofTop - 16;
-  const wingY = roofTop + 30;
+  const geometry = houseGeometry(monster.houseFeatures, anchor.cx, anchor.baseY, anchor.width);
+  const haloY = geometry.roofTop - 16;
+  /** Wings attach to the house walls, just under the roof. */
+  const wingY = geometry.wallY + 12;
   const height = (size * VIEWBOX.h) / VIEWBOX.w;
 
   return (
@@ -101,9 +106,19 @@ export function Monster({
 
       {angel && (
         <g>
-          <ellipse cx={130} cy={wingY + 20} rx={130} ry={110} fill={`url(#glow-${filterId})`} />
-          <path d={`M${anchor.cx - 40} ${wingY + 30} Q ${anchor.cx - 110} ${wingY} ${anchor.cx - 96} ${wingY - 44} Q ${anchor.cx - 70} ${wingY - 4} ${anchor.cx - 34} ${wingY + 8} Z`} fill="#fffbf2" stroke={INK} strokeWidth={3} />
-          <path d={`M${anchor.cx + 40} ${wingY + 30} Q ${anchor.cx + 110} ${wingY} ${anchor.cx + 96} ${wingY - 44} Q ${anchor.cx + 70} ${wingY - 4} ${anchor.cx + 34} ${wingY + 8} Z`} fill="#fffbf2" stroke={INK} strokeWidth={3} />
+          <ellipse cx={130} cy={wingY} rx={130} ry={120} fill={`url(#glow-${filterId})`} />
+          {[1, -1].map((side) => (
+            <g key={side} transform={`translate(${anchor.cx - (side * anchor.width) / 2 + side * 4} ${wingY}) scale(${side} 1)`}>
+              <motion.g
+                animate={{ rotate: [0, 10, 0] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                style={{ transformBox: "fill-box", transformOrigin: "100% 60%" }}
+              >
+                <path d={WING} fill="#fffbf2" stroke={INK} strokeWidth={3} strokeLinejoin="round" />
+                <path d="M-20 -6 C -36 -18 -52 -26 -70 -30 M-24 4 C -38 -2 -50 -6 -62 -6" fill="none" stroke="#c9c2b0" strokeWidth={2} strokeLinecap="round" />
+              </motion.g>
+            </g>
+          ))}
         </g>
       )}
 

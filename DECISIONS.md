@@ -101,3 +101,9 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** When `/api/analyze` fails, the client samples five colors from bands of the photo (`samplePalette`) and hatches a plain one-story house monster named "Mystery House"; the review screen asks the user to write the description.
 - **Alternatives:** Block the flow until analysis works.
 - **Why:** The civic report matters more than the monster; an API outage shouldn't stop it.
+
+### D-019 · Collection: free-roaming monsters + a status hook
+- **Chosen:** `/collection` places each monster absolutely on an illustrated map (`MapBackdrop`); `Wanderer` walks it to random spots (seeded from the monster id), pauses, and sometimes dances. Resolved houses render as angels: 50% opacity, halo above the roof, flapping wings, slow drift instead of walking. Tapping opens a card with name, location, date found and status, plus the next action ("Mark as resolved" or "Report this house to 311" for drafts).
+- **Status hook:** `GET /api/report/status?ref=…` asks the configured sender whether the city closed the request; `refreshStatuses()` runs when the collection opens and turns closed reports into angels (+50). Only Open311 can answer (GeoReport v2 `GET /requests/{id}.json`); with email it returns `unknown`, so v1 relies on "Mark as resolved".
+- **Alternatives:** A real map library with geographic positions (monsters would pile up on one neighborhood and need clustering); a grid/list view.
+- **Why:** The brief asks for monsters roaming a playful map, not a geographic one; the real address is in the card. Positions are cosmetic, so no map tiles or location math are needed.
