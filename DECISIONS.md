@@ -117,3 +117,8 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** `paletteFromPixels` (`src/lib/palette.ts`) shrinks the photo to 48×48 and picks the most common color bucket per region: roof (upper middle; falls back to the darkest color if that region is sky), walls (centre), door (darkest color low in the centre), trim (lightest color in the house area), yard (bottom strip). The fallback house shape varies per catch, and the description is pre-filled with a neutral starter sentence for the user to complete.
 - **Alternatives:** Averaging horizontal bands (previous behavior: muddy greys); k-means clustering (more code, similar result at this size).
 - **Why:** The monster must look like the user's house even without an API key. Claude's palette is still used whenever analysis works.
+
+### D-022 · A switch to run without Claude at all
+- **Chosen:** `NEXT_PUBLIC_SKIP_AI=1` makes the snap flow skip `/api/analyze`: the monster uses on-device photo colors (D-021) and a varied house shape, the description starts with an editable sentence, and no "analysis unavailable" warning is shown. Reports still go through the configured sender.
+- **Alternatives:** Leave the key unset and let every photo hit the error path (shows a warning each time and adds a wasted request).
+- **Why:** For demos without an Anthropic key, the flow should look intentional rather than broken.

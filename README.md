@@ -71,6 +71,8 @@ Open http://localhost:3000. Camera and GPS work on `localhost` in a desktop brow
    ```
 3. Restart the app (`npm run build` then `npm start`, or `npm run dev`).
 
+To run without Claude, replace the `ANTHROPIC_API_KEY` line with `NEXT_PUBLIC_SKIP_AI=1`.
+
 Without `ANTHROPIC_API_KEY`, the AI description, damage tags and house shape are skipped: the monster still uses colors picked from the photo on the phone, and the user writes the description.
 
 ## Running it on your phone (HTTPS is required)

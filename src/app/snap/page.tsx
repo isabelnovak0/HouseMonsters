@@ -32,6 +32,9 @@ function fallbackFeatures(id: string): HouseFeatures {
   };
 }
 
+/** NEXT_PUBLIC_SKIP_AI=1 turns photo analysis off entirely (D-022): no Claude call, no warning. */
+const SKIP_AI = process.env.NEXT_PUBLIC_SKIP_AI === "1";
+
 /** Starter text when the AI description isn't available; the user is asked to add what they see. */
 const FALLBACK_DESCRIPTION = "House that appears to be vacant or abandoned, reported by a resident. Photo attached. ";
 
@@ -155,7 +158,7 @@ export default function SnapPage() {
     }
 
     const [analysis, existing, reporter] = await Promise.all([
-      analyzePhoto(capture.photo).catch((e: unknown) => e as Error),
+      SKIP_AI ? new Error("AI analysis is turned off") : analyzePhoto(capture.photo).catch((e: unknown) => e as Error),
       monsterRepo.list(),
       settings.getReporter().catch(() => undefined),
     ]);
@@ -173,7 +176,11 @@ export default function SnapPage() {
         name: "Mystery House",
         description: FALLBACK_DESCRIPTION,
         tags: [],
-        note: analysis instanceof ApiError ? analysis.message : "We couldn't read the photo, so you'll describe the house yourself.",
+        note: SKIP_AI
+          ? undefined
+          : analysis instanceof ApiError
+            ? analysis.message
+            : "We couldn't read the photo, so you'll describe the house yourself.",
         catchPoints,
         duplicateOf: duplicate?.name,
         reporter,
@@ -284,7 +291,13 @@ export default function SnapPage() {
           onChange={(patch) => dispatch({ type: "review", patch })}
           locationError={s.locationError}
           addressLoading={s.addressLoading}
-          descriptionNote={s.analysisNote ? "AI photo analysis wasn't available. Add what you see (boarded windows, broken glass, overgrown yard…)." : undefined}
+          descriptionNote={
+            SKIP_AI
+              ? "Add what you see: boarded windows, broken glass, overgrown yard…"
+              : s.analysisNote
+                ? "AI photo analysis wasn't available. Add what you see (boarded windows, broken glass, overgrown yard…)."
+                : undefined
+          }
           sending={s.sending}
           error={s.sendError}
           onBack={() => dispatch({ type: "goto", step: "reveal" })}
