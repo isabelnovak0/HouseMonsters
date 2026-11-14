@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* Storybook palette shared by every screen (see ARCHITECTURE.md > Visual system) */
+@theme {
+  --color-parchment: #f4ead5;
+  --color-parchment-dark: #e2d4b4;
+  --color-paper: #fffbf2;
+  --color-ink: #2b2a26;
+  --color-ink-soft: #5a5244;
+  --color-moss: #5e8c4a;
+  --color-moss-dark: #3e6630;
+  --color-sky: #2f5d8a;
+  --color-brick: #c8452f;
+  --color-butter: #f6e3a1;
+  --color-river: #9cc5d6;
+  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Chunky "sticker" look used by cards and buttons */
+.sticker {
+  border: 2.5px solid var(--color-ink);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.sticker:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
