@@ -34,3 +34,18 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** turtle (detailed, like the reference turtle), snail (minimal line-art), box cat (dark creature wearing a wooden box). Type: `AnimalType = "turtle" | "snail" | "boxcat"`.
 - **Alternatives:** The six animals in the original brief (+ crab, beetle, tortoise).
 - **Why:** The user supplied exactly these three reference images to follow. More animals can be added as new SVG components without touching data or flows.
+
+### D-007 · On-device storage: IndexedDB via `idb`, behind a repository interface
+- **Chosen:** `MonsterRepository` / `SettingsRepository` interfaces (`src/lib/storage/repository.ts`) with an IndexedDB implementation using the tiny `idb` wrapper. Screens import from `src/lib/storage/index.ts` only.
+- **Alternatives:** `localStorage` (5 MB cap, sync, strings only — photos would blow it); Dexie (bigger API than we need); a backend DB from day one (needs auth/accounts).
+- **Why:** IndexedDB stores photos as data URLs comfortably and works offline. The interface means a server-backed repo can replace it later by changing one file.
+
+### D-008 · State management: none beyond React state + the repository
+- **Chosen:** Each screen loads what it needs from the repository with `useEffect`/`useState`; the snap flow keeps its step machine in one `useReducer`.
+- **Alternatives:** Redux/Zustand; React Query.
+- **Why:** There's no shared server cache and only three screens. A global store would be ceremony. Revisit if a backend + sync arrives.
+
+### D-010 · Points & duplicates are pure functions
+- **Chosen:** `src/lib/points.ts` — +100 for a new catch, +50 once when resolved, and a 30 m haversine radius for "same house". Points are stored per monster and summed for the total.
+- **Alternatives:** A running total in settings; server-side scoring.
+- **Why:** Deriving the total from the collection can't get out of sync, and pure functions are unit-tested (`tests/points.test.ts`). The +100 is awarded at catch time (so the reveal can show "+100"); a duplicate catch earns 0 and the user is warned.

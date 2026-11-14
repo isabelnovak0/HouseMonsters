@@ -12,6 +12,29 @@ _This document is kept current as the code changes. Design rationale lives in DE
 - IndexedDB (`idb`) for the on-device collection
 - Framer Motion for monster animation; monsters are hand-built layered SVG
 
+## Data model (`src/lib/types.ts`)
+One record per collected house, stored in IndexedDB store `monsters` (key `id`, index `foundAt`):
+
+| Field | Type | Notes |
+|---|---|---|
+| id | string | `crypto.randomUUID()` |
+| name | string ≤ 15 | user-editable, pre-filled by Claude |
+| animal | `turtle \| snail \| boxcat` | picked from house features |
+| houseFeatures | roofShape, stories, windowCount, doorPosition, porch, chimney | from Claude |
+| palette | roof, walls, door, trim, surroundings (hex) | from Claude; paints the monster |
+| photo | JPEG data URL | downscaled to ≤1280 px on the phone |
+| location | lat, lng, accuracy? | GPS at capture, or geocoded typed address |
+| address | string | reverse-geocoded, user-editable |
+| description, conditionTags | string, enum[] | from Claude, user-editable |
+| foundAt | ISO time | |
+| reportStatus | `draft \| reported \| resolved` | |
+| reportRef, reportedAt, resolvedAt | optional | |
+| points | number | 100 per new house, +50 when resolved, 0 for duplicates |
+| pendingReport | boolean? | confirmed but waiting for network |
+| reporter | name/email/phone? | what was sent with the report |
+
+Store `settings` holds the remembered reporter contact (key `reporter`).
+
 ## Layout (work in progress)
 ```
 src/

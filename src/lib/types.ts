@@ -52,6 +52,10 @@ export interface Monster {
   resolvedAt?: string;
   /** Points this monster has earned so far (new house + resolve bonus). */
   points: number;
+  /** True while a confirmed report is waiting for the network (offline queue). */
+  pendingReport?: boolean;
+  /** The reporter contact captured when the user confirmed the report. */
+  reporter?: ReporterContact;
 }
 
 /** What the client posts to /api/report. */
