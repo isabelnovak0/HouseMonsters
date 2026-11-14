@@ -70,3 +70,18 @@ Newest entries at the bottom. IDs are stable so code comments can point at them.
 - **Chosen:** `framer-motion` for keyframed SVG transforms (walk cycle, dances, angel float), CSS `prefers-reduced-motion` respected globally.
 - **Alternatives:** Hand-written CSS keyframes; GSAP; Web Animations API directly.
 - **Why:** Declarative keyframes per SVG group, easy replay via React keys, and sequencing from React state. GSAP's licence and imperative style add little here.
+
+### D-009 · How reports reach Birmingham 311: email by default, Open311 ready, portal as backup
+- **What we found (Nov 2026):** Birmingham's 311 takes requests through an online portal at birminghamal.gov (you need an account), the "My Bham 311" app, and by phone (dial 311 inside the city, or (205) 254-2489). We found **no public Open311 / developer API** and **no published email address for 311 intake**. The city runs an ArcGIS "CRM/311Application" service, but it is a map layer, not a documented way to submit requests. (We could only check via search results; the city site wasn't reachable from the build machine. Confirm with the 311 office.)
+- **Chosen:** A `ReportSender` interface (`src/lib/report/`) picked by `REPORT_SENDER`:
+  1. `email` (default) — Resend sends a formatted email with the photo attached to `CITY_311_EMAIL`. Point it at your own inbox while testing, then at whichever address the city confirms (or at a team inbox that re-files into the portal).
+  2. `open311` — a working GeoReport v2 client (`POST /requests.json`), ready if Birmingham publishes an endpoint.
+  The confirmation screen also links to the official portal (`NEXT_PUBLIC_CITY_311_PORTAL_URL`) and offers to copy the report text, so a user can always file it there themselves.
+- **Alternatives:** Automating the city's web form with a headless browser (fragile, needs the user's portal login, likely against terms); calling 311 by phone (not automatable); only a "copy & open portal" handoff (no automation at all).
+- **Why:** Email is the only automatic channel that works today without credentials we don't have, and the interface means switching to an API later is a config change.
+- **Email provider:** Resend — simple REST API, attachments, free tier. Alternatives: SendGrid, Postmark, SMTP via Nodemailer. Any of them fits behind `ReportSender`.
+
+### D-015 · Address lookup and mini map: OpenStreetMap (Nominatim + tiles)
+- **Chosen:** `/api/geocode` proxies Nominatim for reverse (GPS → address) and forward (typed address → point, biased to the Birmingham area) lookups. The review screen's small map is OSM raster tiles with a pin, with attribution.
+- **Alternatives:** Google Maps / Mapbox (API keys and billing); Leaflet/MapLibre (heavier than a single static map needs).
+- **Why:** No key needed to start. Proxying lets us send the identifying User-Agent Nominatim's usage policy asks for, without sending anything about the user. For real traffic, switch to a paid geocoder or self-hosted Nominatim — Nominatim's public server allows ~1 request/second.
