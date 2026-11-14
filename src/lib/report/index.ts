@@ -1,4 +1,5 @@
 import "server-only";
+import { DemoReportSender } from "./demo-sender";
 import { EmailReportSender } from "./email-sender";
 import { Open311ReportSender } from "./open311-sender";
 import type { ReportSender } from "./sender";
@@ -8,6 +9,7 @@ export { ReportSendError, type ReportSender } from "./sender";
 /** Builds the configured sender from env vars, or explains what's missing. */
 export function createReportSender(env: NodeJS.ProcessEnv = process.env): ReportSender | { missing: string[] } {
   const kind = (env.REPORT_SENDER ?? "email").toLowerCase();
+  if (kind === "demo") return new DemoReportSender();
   if (kind === "open311") {
     const missing = ["OPEN311_BASE_URL", "OPEN311_SERVICE_CODE"].filter((k) => !env[k]);
     if (missing.length) return { missing };

@@ -11,6 +11,7 @@ import { markReported, toPayload } from "@/lib/client/outbox";
 import { refreshStatuses } from "@/lib/client/status";
 import { useMonsters } from "@/lib/client/useMonsters";
 import { markResolved, NEW_HOUSE_POINTS, RESOLVE_BONUS_POINTS, totalPoints } from "@/lib/points";
+import { seedDemoMonsters } from "@/lib/client/demo";
 import { monsters as repo } from "@/lib/storage";
 import type { Monster } from "@/lib/types";
 
@@ -81,7 +82,19 @@ export default function CollectionPage() {
         <div className="absolute inset-x-6 top-1/3 z-[150] rounded-3xl border-[2.5px] border-ink bg-paper p-6 text-center">
           <p className="font-[family-name:var(--font-display)] text-2xl font-semibold">No monsters yet</p>
           <p className="mt-2 text-[15px] text-ink-soft">Snap an abandoned house and its monster will move in here.</p>
-          <Link href="/snap" className="sticker mt-4 flex h-14 items-center justify-center gap-2 rounded-2xl bg-moss font-[family-name:var(--font-display)] text-lg font-semibold text-paper">
+          {process.env.NEXT_PUBLIC_DEMO === "1" && (
+            <button
+              type="button"
+              onClick={async () => {
+                await seedDemoMonsters();
+                await reload();
+              }}
+              className="mt-4 h-12 w-full rounded-2xl border-2 border-ink bg-butter font-[family-name:var(--font-display)] font-semibold"
+            >
+              Load 3 sample monsters (demo)
+            </button>
+          )}
+          <Link href="/snap" className="sticker mt-3 flex h-14 items-center justify-center gap-2 rounded-2xl bg-moss font-[family-name:var(--font-display)] text-lg font-semibold text-paper">
             <CameraIcon className="h-6 w-6" /> Snap a house
           </Link>
         </div>
